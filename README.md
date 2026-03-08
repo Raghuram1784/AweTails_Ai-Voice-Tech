@@ -10,6 +10,7 @@ This project demonstrates a complete end-to-end conversational AI pipeline.
 The assistant follows a modular speech-to-speech pipeline. Each component performs a dedicated role in transforming raw voice input into an intelligent spoken response.
 
 ### High-Level Processing Pipeline
+```text
 User Speech
     │
     ▼
@@ -54,6 +55,8 @@ pyttsx3 TTS
     ▼
 Audio Playback
 AI Spoken Response
+```
+
 
 ## How the System Works
 ### 1. Microphone Input
@@ -106,6 +109,7 @@ The assistant uses Retrieval Augmented Generation to enhance its responses using
 The system searches a local knowledge base (`knowledge.txt`) using FAISS, a fast vector similarity search engine.
 
 **Process**
+```text
 User Query
       │
       ▼
@@ -116,6 +120,8 @@ Retrieve Relevant Knowledge
       │
       ▼
 Send Context to LLM
+```
+
 
 **Responsibilities**
 - Embed text into vector representations
@@ -148,6 +154,7 @@ The generated text response is converted back into audio using the `pyttsx3` tex
 
 The assistant operates as a continuous conversational system.
 
+```text
 User Speech
       │
       ▼
@@ -167,6 +174,8 @@ Text-to-Speech
       │
       ▼
 AI Spoken Response
+```
+
 
 This architecture enables real-time speech-to-speech interaction.
 
