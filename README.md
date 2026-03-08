@@ -1,105 +1,274 @@
-# 🎙️ Conversational Voice AI Assistant
+# Conversational Voice AI Assistant
 
-A professional, real-time speech-to-speech AI assistant built with **Streamlit**, **Whisper**, and **Llama 3.1**. This assistant features a modern three-panel interface, retrieval-augmented generation (RAG) for expert knowledge, and persistent chat sessions.
+A real-time speech-to-speech conversational assistant built using Streamlit, Whisper ASR, and Llama 3.1.
+The system captures live voice input, converts speech to text, retrieves relevant knowledge using Retrieval Augmented Generation (RAG), generates an intelligent response using a Large Language Model, and converts the response back into natural speech.
 
----
+This project demonstrates a complete end-to-end conversational AI pipeline.
 
-## 🧠 How It Works (The AI Workflow)
+## System Architecture
 
-Even if you are a beginner, here is how the assistant processes your voice step-by-step:
+The assistant follows a modular speech-to-speech pipeline. Each component performs a dedicated role in transforming raw voice input into an intelligent spoken response.
 
-### 1. 🎤 Sound Capture (`sounddevice`)
-When you click the microphone, the app uses **sounddevice** to "listen" to your computer's mic. It captures your speech as small chunks of digital data.
+### High-Level Processing Pipeline
+User Speech
+    │
+    ▼
+Microphone Capture
+(sounddevice)
+    │
+    ▼
+Audio Preprocessing
+Noise Suppression
+(noisereduce)
+    │
+    ▼
+Voice Activity Detection
+Silence Detection Logic
+    │
+    ▼
+Automatic Speech Recognition
+Whisper ASR
+    │
+    ▼
+Query Processing
+Prompt Structuring
+    │
+    ▼
+Knowledge Retrieval
+RAG Layer
+FAISS + LangChain
+    │
+    ▼
+Reasoning Engine
+Llama 3.1 LLM
+(Groq API)
+    │
+    ▼
+Response Generation
+Structured Output
+    │
+    ▼
+Speech Synthesis
+pyttsx3 TTS
+    │
+    ▼
+Audio Playback
+AI Spoken Response
 
-### 2. 🧹 Cleaning & Smart Silence (`noisereduce` & `VAD`)
-- **Noise Suppression**: Using **noisereduce**, the app filters out background static (like your laptop fan) so the AI hears only your voice.
-- **VAD (Voice Activity Detection)**: The app is smart! It monitors your voice level and automatically "stops" the recording as soon as it detects 2 seconds of silence. You don't even have to click "Stop"!
+## How the System Works
+### 1. Microphone Input
 
-### 3. ✍️ Sound to Text (`OpenAI Whisper ASR`)
-The cleaned audio is converted into actual written text by **Whisper**, a world-class **ASR (Automatic Speech Recognition)** engine.
+The application captures real-time audio using the `sounddevice` library.
+Audio is streamed as small chunks of digital data to enable responsive processing.
 
-### 4. 📚 Personal Knowledge Search (`RAG` using `FAISS`)
-This is the **RAG (Retrieval Augmented Generation)** phase. The AI looks into your local `knowledge.txt` file using **FAISS** (a super-fast digital library) to find specific facts related to your question. This makes the AI "smarter" about your personal data.
+**Responsibilities**
+- Capture microphone input
+- Stream audio frames
+- Buffer incoming audio data
 
-### 5. 🧠 Thinking & Reasoning (`Llama 3.1 LLM`)
-The text is sent to the **LLM (Large Language Model)**—**Llama 3.1** via the Grok API. The AI combines its general knowledge with your "personal library" data to write a concise response.
+### 2. Audio Processing
 
-### 6. 🗣️ Text to Voice (`pyttsx3 TTS`)
-Finally, the written response is sent to **pyttsx3**, a **TTS (Text-to-Speech)** engine. It acts like artificial vocal cords, turning the answer back into a human voice.
+Before sending the audio to the speech recognition engine, the signal is cleaned and optimized.
 
----
+**Noise Suppression**
+Background noise is reduced using the `noisereduce` library to improve transcription quality.
 
-## 🌟 Key Features
+**Voice Activity Detection**
+Silence detection logic automatically stops recording once the user finishes speaking.
 
-### 🛠️ Advanced Voice Pipeline
-- **Real-Time Capture**: High-quality audio recording with `sounddevice`.
-- **Intelligent VAD**: Built-in Voice Activity Detection to automatically stop recording when you finish speaking.
-- **Noise Suppression**: Clean audio processing for crystal-clear transcription.
-- **Whisper ASR**: Industry-leading speech-to-text accuracy.
-- **Groq-Powered LLM**: Blazing-fast reasoning using the Llama 3.1 8B model.
-- **Seamless TTS**: Professional text-to-speech synthesis that plays back automatically.
+**Responsibilities**
+- Remove background noise
+- Detect speech boundaries
+- Prepare audio for ASR processing
 
-### 🖥️ Modern Experience
-- **3-Panel Dashboard**: 
-  - **Left**: Chat Session History (New, Switch, and Delete chats).
-  - **Center**: Chronological conversation history with native chat bubbles.
-  - **Right**: Elegant Microphone controls with pulsing animations.
-- **Smart Response Control**: Responses are optimized (40-50 words) unless you specifically ask for "briefly" detailed info.
-- **AI Interruption**: Dedicated "Stop AI" button to pause the assistant mid-speech.
+### 3. Automatic Speech Recognition (ASR)
 
----
+The cleaned audio signal is converted into text using OpenAI Whisper.
 
-## 🚀 Getting Started
+Whisper is a deep learning based ASR model capable of accurate speech recognition across various environments.
 
-### 1. Prerequisites
-- **Python 3.9+**
-- **FFmpeg**: Must be installed and added to your System PATH (Required for Whisper audio processing).
-  - *Windows*: `choco install ffmpeg` or download from [ffmpeg.org](https://ffmpeg.org/).
+**Example output**
+```json
+{
+  "transcription": "Explain artificial intelligence"
+}
+```
 
-### 2. Installation
-Clone this repository and install the required dependencies:
+**Responsibilities**
+- Speech to text conversion
+- Sentence segmentation
+- Accurate transcription
+
+### 4. Knowledge Retrieval (RAG)
+
+The assistant uses Retrieval Augmented Generation to enhance its responses using domain-specific knowledge.
+
+The system searches a local knowledge base (`knowledge.txt`) using FAISS, a fast vector similarity search engine.
+
+**Process**
+User Query
+      │
+      ▼
+Vector Search
+      │
+      ▼
+Retrieve Relevant Knowledge
+      │
+      ▼
+Send Context to LLM
+
+**Responsibilities**
+- Embed text into vector representations
+- Perform semantic similarity search
+- Retrieve relevant contextual information
+
+### 5. Reasoning Layer
+
+The user query and retrieved knowledge are passed to the Llama 3.1 Large Language Model through the Groq API.
+
+The LLM performs reasoning and generates a contextual response based on both
+- General knowledge
+- Retrieved knowledge context
+
+**Responsibilities**
+- Intent understanding
+- Contextual reasoning
+- Natural language response generation
+
+### 6. Text to Speech (TTS)
+
+The generated text response is converted back into audio using the `pyttsx3` text-to-speech engine.
+
+**Responsibilities**
+- Convert text response to audio
+- Synthesize natural speech
+- Playback response to the user
+
+## End-to-End Conversational Loop
+
+The assistant operates as a continuous conversational system.
+
+User Speech
+      │
+      ▼
+Speech Recognition
+      │
+      ▼
+Knowledge Retrieval
+      │
+      ▼
+LLM Reasoning
+      │
+      ▼
+Response Generation
+      │
+      ▼
+Text-to-Speech
+      │
+      ▼
+AI Spoken Response
+
+This architecture enables real-time speech-to-speech interaction.
+
+## Key Features
+### Voice Pipeline
+- Real-time audio capture using `sounddevice`
+- Noise suppression for improved speech clarity
+- Voice activity detection for automatic recording control
+- Whisper based speech recognition
+- Fast Llama 3.1 reasoning using Groq API
+- Text to speech synthesis using `pyttsx3`
+
+### Conversational Interface
+- Multi-session chat management
+- Persistent conversation history
+- Scrollable conversation window
+- Dedicated microphone controls
+- Ability to interrupt AI speech
+
+### Retrieval Augmented Generation
+- Custom knowledge base using `knowledge.txt`
+- Vector search using FAISS
+- Context-aware responses using LangChain
+
+## Technology Stack
+
+### Frontend
+- Streamlit
+
+### Speech Recognition
+- OpenAI Whisper
+
+### Language Model
+- Llama 3.1 via Groq API
+
+### Retrieval System
+- FAISS
+- LangChain
+
+### Speech Synthesis
+- `pyttsx3`
+
+### Audio Processing
+- NumPy
+- SciPy
+- `noisereduce`
+
+## Project Structure
+```text
+AweTails_Ai-Voice-Tech
+│
+├── app.py
+├── knowledge.txt
+├── requirements.txt
+├── .env
+└── README.md
+```
+
+**app.py**
+Main application containing the voice pipeline and user interface.
+
+**knowledge.txt**
+Source document used by the RAG system.
+
+**requirements.txt**
+List of project dependencies.
+
+**.env**
+Stores API credentials.
+
+## Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/Raghuram1784/AweTails_Ai-Voice-Tech.git
+```
+
+2. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configuration
-1. Obtain an API Key from **Groq Cloud**.
-2. Create or edit the `.env` file in the root directory:
-   ```env
-   GROK_API_KEY=your_actual_api_key_here
-   ```
+## Configuration
 
-### 4. Launch the App
-Run the following command to start the assistant:
+**Create a .env file in the project root directory**
+```env
+GROK_API_KEY=your_api_key_here
+```
+
+## Running the Application
+
+**Start the Streamlit server**
 ```bash
 streamlit run app.py
 ```
+The application will launch automatically in your browser.
 
----
+## Usage
 
-## 📂 Project Structure
-- `app.py`: The main engine containing the UI and Voice Pipeline.
-- `knowledge.txt`: Source document for the RAG system (Vector DB).
-- `requirements.txt`: Project dependencies and libraries.
-- `.env`: Secure storage for API credentials.
-
----
-
-## 🎮 How to Use
-1. **Start a Session**: Click **New Chat** on the left.
-2. **Talk to the AI**: Click the **🎙️ Mic** icon on the right. Speak clearly and stop—the AI will detect your silence automatically!
-3. **Interrupt**: If the AI is talking too much, hit the **⏹ Stop AI** button.
-4. **Manage History**: Switch between "Chat 1", "Chat 2", etc., or delete old sessions using the **🗑️ icon**.
-
----
-
-## 🧪 Technology Stack
-- **Frontend**: Streamlit
-- **ASR**: OpenAI Whisper
-- **LLM**: Meta Llama 3.1 (via Groq)
-- **RAG**: FAISS & LangChain
-- **TTS**: pyttsx3
-- **Processing**: NumPy, noisereduce, SciPy
-
----
-*Created for the Hackathon Demo - Seamless Voice Interaction.*
+1. Create a new chat session
+2. Click the microphone button
+3. Speak your query clearly
+4. The system automatically detects silence and stops recording
+5. Speech is converted into text and processed by the AI model
+6. The assistant generates a response and converts it back into speech
